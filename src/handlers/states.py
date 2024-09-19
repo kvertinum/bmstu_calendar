@@ -4,7 +4,7 @@ from aiogram.fsm.state import State, StatesGroup
 from aiogram.fsm.context import FSMContext
 
 from src.database.repositories import UserRepository
-from src.keyboards.reply import BasicButtons
+from src.keyboards.reply import MenuButtons
 from src import texts
 
 
@@ -20,6 +20,6 @@ async def select_skills(message: Message, state: FSMContext):
     group = message.text.upper()
     await UserRepository(message.from_user.id).new(group)
 
-    await message.answer(texts.GROUP_SAVED, reply_markup=BasicButtons.menu())
+    await message.answer(texts.GROUP_SAVED, reply_markup=MenuButtons.menu())
 
     await state.clear()

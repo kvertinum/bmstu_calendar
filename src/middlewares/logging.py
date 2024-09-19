@@ -7,9 +7,6 @@ from aiogram import BaseMiddleware
 from aiogram.types import TelegramObject, Update
 
 
-HANDLED_STR = ["Unhandled", "Handled"]
-
-
 class LoggingMiddleware(BaseMiddleware):
     async def __call__(
         self,

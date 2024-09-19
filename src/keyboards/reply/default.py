@@ -17,6 +17,7 @@ from src.exceptions.keyboard import (
 )
 from src.keyboards.utils import create_keyboard_layout
 
+
 POSSIBLE_BUTTON_PROPERTIES_VALUES = (
     str
     | bool
