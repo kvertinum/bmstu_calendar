@@ -16,7 +16,7 @@ class User(Base):
     __table_args__ = {'extend_existing': True}
 
     id = Column(BigInteger, primary_key=True, unique=True)
-    username = Column(String(255))
+    telegram_name = Column(String(255))
     group = Column(String(255))
     share = Column(Boolean, default=False)
     created_at = Column(DateTime, default=datetime.now())

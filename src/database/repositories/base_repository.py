@@ -32,3 +32,12 @@ class BaseRepository:
             )
             get_result = ex_res.scalar()
             return get_result
+        
+    async def _select(self, where_field: ColumnExpressionArgument[bool]):
+        async with session_pool() as session:
+            ex_res = await session.execute(
+                select(self._model)
+                .where(where_field)
+            )
+            get_result = ex_res.all()
+            return get_result

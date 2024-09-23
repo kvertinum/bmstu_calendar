@@ -31,5 +31,5 @@ dp.startup.register(set_my_commands)
 dp.include_routers(*routers)
 
 dp.update.outer_middleware(LoggingMiddleware())
-dp.message.middleware(CacheMiddleware())
-dp.callback_query.middleware(CacheMiddleware())
+dp.message.outer_middleware(CacheMiddleware())
+dp.callback_query.outer_middleware(CacheMiddleware())

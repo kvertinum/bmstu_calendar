@@ -3,9 +3,10 @@ from aiogram.types import Message, CallbackQuery
 from typing import Callable, Awaitable, Union, Dict, Any
 
 from src.tools import SafeDict
+from src.database.repositories import UserRepository
 
 
-DEFAULT_DICT = {"schedules": {}}
+DEFAULT_DICT = {"group_schedules": {}}
 
 
 class CacheMiddleware(BaseMiddleware):
@@ -23,6 +24,9 @@ class CacheMiddleware(BaseMiddleware):
         if user_data is None:
             user_data = {}
             await self.cache.set(event.from_user.id, user_data)
+
         data["user_cache"] = user_data
         data["safe_cache"] = self.cache
+        data["user"] = await UserRepository(event.from_user.id).get()
+
         return await handler(event, data)

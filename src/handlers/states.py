@@ -18,7 +18,8 @@ class UserInfo(StatesGroup):
 @router.message(UserInfo.group)
 async def select_skills(message: Message, state: FSMContext):
     group = message.text.upper()
-    await UserRepository(message.from_user.id).new(group)
+    name = message.from_user.full_name
+    await UserRepository(message.from_user.id).new(group, name)
 
     await message.answer(texts.GROUP_SAVED, reply_markup=MenuButtons.menu())
 

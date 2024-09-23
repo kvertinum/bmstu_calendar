@@ -5,10 +5,10 @@ compose-stop:
 	@docker-compose down -v --remove-orphans
 
 commit:
-	docker-compose exec db alembic revision --autogenerate -m "$$(name)"
+	docker-compose exec app alembic revision --autogenerate -m "$$(name)"
 
 migrate:
-	@docker-compose exec db alembic upgrade head
+	@docker-compose exec app alembic upgrade head
 
 downgrade:
-	@docker-compose exec db alembic downgrade -1
+	@docker-compose exec app alembic downgrade -1

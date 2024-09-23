@@ -1,15 +1,14 @@
-from typing import Optional
 from pydantic import BaseModel, ConfigDict
 
 
-periods = [
-    "08:30 - 10:05",
-    "10:15 - 11:50",
-    "12:00 - 13:35",
-    "13:50 - 15:25",
-    "15:40 - 17:15",
-    "17:25 - 19:00",
-    "19:10 - 20:45",
+periods =  [
+    [(8, 30), (10, 5)],
+    [(10, 15), (11, 50)],
+    [(12, 0), (13, 35)],
+    [(13, 50), (15, 25)],
+    [(15, 40), (17, 15)],
+    [(17, 25), (19, 0)],
+    [(19, 10), (20, 45)],
 ]
 
 
@@ -22,7 +21,8 @@ class Class(BaseModel):
     week: str = "all"
 
     def __str__(self):
-        time = periods[self.time - 1]
-        return f"{time} {self.name} ({self.location})" + (
+        time_object = periods[self.time - 1]
+        time_str = " - ".join(f"{p[0]:02}:{p[1]:02}" for p in time_object)
+        return f"{time_str} {self.name} ({self.location})" + (
             f" [{self.week}]" if self.week != "all" else ""
         )
