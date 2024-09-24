@@ -6,7 +6,7 @@ from src.config import DB_URL
 
 engine = create_async_engine(DB_URL)
 session_pool: sessionmaker[AsyncSession] = sessionmaker(
-    engine, class_=AsyncSession
+    engine, class_=AsyncSession, expire_on_commit=False,
 )
 
 

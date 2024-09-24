@@ -1,4 +1,4 @@
-from src.keyboards.reply.default import DefaultConstructor
+from src.keyboards.reply.const import DefaultConstructor
 
 
 class MenuButtons(DefaultConstructor):

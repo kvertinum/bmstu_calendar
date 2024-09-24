@@ -2,13 +2,14 @@ from aiogram import Router, F
 from aiogram.types import Message
 from aiogram.filters import Command
 from typing import Dict
+from loguru import logger
 
 from src import texts
 from src.middlewares.filter import UserExists
 from src.tools import SafeDict, get_group_schedule, group_status
 from src.parser import SCHEDULE_T, list_to_text
 from src.keyboards.reply import MenuButtons
-from src.handlers.states import UserInfo
+from src.keyboards.inline import NotificationsButtons
 from src.database.repositories import UserRepository
 from src.database.models import User
 
@@ -22,6 +23,7 @@ router.callback_query.filter(UserExists())
 @router.message(Command("week"))
 @router.message(F.text == MenuButtons.SCHEDULE_WEEK)
 async def week_cmd(message: Message, safe_cache: SafeDict, user: User):
+    # logger.debug(str(user.settings))
     schedules: Dict[str, SCHEDULE_T] = await safe_cache.get("group_schedules")
 
     group_schedule_ex = schedules.get(user.group)
@@ -36,27 +38,37 @@ async def week_cmd(message: Message, safe_cache: SafeDict, user: User):
     for day in group_schedule:
         res_schedule += list_to_text(day) + "\n"
 
-    return await message.answer(res_schedule, reply_markup=MenuButtons.menu())
+    await message.answer(res_schedule, reply_markup=MenuButtons.menu())
 
 
 @router.message(Command("share"))
 async def share_cmd(message: Message, user: User):
-    share_status = not user.share
+    share_status = not user.settings.share
 
     user_rep = UserRepository(message.from_user.id)
-    await user_rep.update(share=share_status)
+    await user_rep.update_settings(share=share_status)
 
     await message.answer(texts.SHARE_STATUS[share_status])
 
 
 @router.message(F.text == MenuButtons.SCHEDULE)
-async def notifications_button(message: Message):
+async def schedule_button(message: Message):
     await message.answer(texts.SCHEDULE_BUTTONS, reply_markup=MenuButtons.schedule())
 
 
+@router.message(F.text == MenuButtons.NOTIFICATIONS)
+async def notifications_button(message: Message):
+    buttons = NotificationsButtons.notifications_settings(
+        everyday_schedule_status=True,
+        after_classes_status=False,
+    )
+
+    await message.answer(texts.NOTIFICATIONS_SETTINGS, reply_markup=buttons)
+
+
 @router.message(F.text == MenuButtons.FREE_STUDENTS)
-async def get_free_students(message: Message, safe_cache: SafeDict):
-    share_open_users = await UserRepository().select(User.share == True)
+async def free_students_button(message: Message, safe_cache: SafeDict):
+    share_open_users = await UserRepository.get_all_share()
 
     # texted var to send the download text only once
     result_text, texted = "", False
@@ -85,4 +97,4 @@ async def get_free_students(message: Message, safe_cache: SafeDict):
                 end_time=last_str
             ) + "\n"
 
-    return await message.answer(result_text, parse_mode="MarkdownV2")
+    await message.answer(result_text, parse_mode="MarkdownV2")
