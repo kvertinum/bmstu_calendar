@@ -27,6 +27,9 @@ class CacheMiddleware(BaseMiddleware):
 
         data["user_cache"] = user_data
         data["safe_cache"] = self.cache
-        data["user"] = await UserRepository(event.from_user.id).get()
+
+        user = await UserRepository.get(event.from_user.id)
+        data["user"] = user
+        data["user_rep"] = UserRepository(user)
 
         return await handler(event, data)

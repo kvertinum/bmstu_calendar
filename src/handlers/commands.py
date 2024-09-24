@@ -42,11 +42,8 @@ async def week_cmd(message: Message, safe_cache: SafeDict, user: User):
 
 
 @router.message(Command("share"))
-async def share_cmd(message: Message, user: User):
-    share_status = not user.settings.share
-
-    user_rep = UserRepository(message.from_user.id)
-    await user_rep.update_settings(share=share_status)
+async def share_cmd(message: Message, user_rep: UserRepository):
+    share_status = await user_rep.update_share_status()
 
     await message.answer(texts.SHARE_STATUS[share_status])
 
@@ -57,10 +54,10 @@ async def schedule_button(message: Message):
 
 
 @router.message(F.text == MenuButtons.NOTIFICATIONS)
-async def notifications_button(message: Message):
+async def notifications_button(message: Message, user: User):
     buttons = NotificationsButtons.notifications_settings(
-        everyday_schedule_status=True,
-        after_classes_status=False,
+        everyday_schedule_status=user.settings.everyday_schedule_alert,
+        after_classes_status=user.settings.free_after_classes_alert,
     )
 
     await message.answer(texts.NOTIFICATIONS_SETTINGS, reply_markup=buttons)
