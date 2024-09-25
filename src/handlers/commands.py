@@ -2,14 +2,14 @@ from aiogram import Router, F
 from aiogram.types import Message
 from aiogram.filters import Command
 from typing import Dict
-from loguru import logger
 
 from src import texts
 from src.middlewares.filter import UserExists
 from src.tools import SafeDict, get_group_schedule, group_status
 from src.parser import SCHEDULE_T, list_to_text
 from src.keyboards.reply import MenuButtons
-from src.keyboards.inline import NotificationsButtons
+from src.keyboards.inline import NotificationsButtons, SettingsButtons
+from src.keyboards.inline.callbacks import UpdateShareCallback
 from src.database.repositories import UserRepository
 from src.database.models import User
 
@@ -23,7 +23,6 @@ router.callback_query.filter(UserExists())
 @router.message(Command("week"))
 @router.message(F.text == MenuButtons.SCHEDULE_WEEK)
 async def week_cmd(message: Message, safe_cache: SafeDict, user: User):
-    # logger.debug(str(user.settings))
     schedules: Dict[str, SCHEDULE_T] = await safe_cache.get("group_schedules")
 
     group_schedule_ex = schedules.get(user.group)
@@ -43,9 +42,9 @@ async def week_cmd(message: Message, safe_cache: SafeDict, user: User):
 
 @router.message(Command("share"))
 async def share_cmd(message: Message, user_rep: UserRepository):
-    share_status = await user_rep.update_share_status()
+    settings = await user_rep.update_settings(UpdateShareCallback.__prefix__)
 
-    await message.answer(texts.SHARE_STATUS[share_status])
+    await message.answer(texts.SHARE_STATUS[settings.share])
 
 
 @router.message(F.text == MenuButtons.SCHEDULE)
@@ -61,6 +60,15 @@ async def notifications_button(message: Message, user: User):
     )
 
     await message.answer(texts.NOTIFICATIONS_SETTINGS, reply_markup=buttons)
+
+
+@router.message(F.text == MenuButtons.SETTINGS)
+async def settings_button(message: Message, user: User):
+    buttons = SettingsButtons.main_settings(
+        share_status=user.settings.share,
+    )
+
+    await message.answer(texts.MAIN_SETTINGS, reply_markup=buttons)
 
 
 @router.message(F.text == MenuButtons.FREE_STUDENTS)

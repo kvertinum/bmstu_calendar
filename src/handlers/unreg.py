@@ -7,7 +7,7 @@ from src import texts
 from src.handlers.states import UserInfo
 
 
-router = Router(name="register-router")
+router = Router(name="unreg-router")
 
 
 @router.message(CommandStart())

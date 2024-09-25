@@ -1,3 +1,6 @@
+from aiogram.filters.callback_data import CallbackQueryFilter
+from typing import List
+
 from src.keyboards.inline.const import InlineConstructor
 from src.keyboards.inline import callbacks
 
@@ -7,7 +10,12 @@ status_emojis = ["❌", "✅"]
 
 class NotificationsButtons(InlineConstructor):
     EVERYDAY_SCHEDULE = "{} Ежедневное расписание"
-    FREE_AFTER_CLASSES = "{} Свободные после пар"
+    FREE_AFTER_CLASSES = "{} Кто свободен после пар"
+
+    CALLBACK_FILTERS: List[CallbackQueryFilter] = [
+        callbacks.AfterClassesCallback.filter(),
+        callbacks.EverydayScheduleCallback.filter(),
+    ]
 
 
     @classmethod
@@ -24,15 +32,11 @@ class NotificationsButtons(InlineConstructor):
         buttons = [
             {
                 "text": cls.EVERYDAY_SCHEDULE.format(everyday_schedule_emoji),
-                "callback_data": callbacks.EverydayScheduleCallback(
-                    everyday_schedule=everyday_schedule_status,
-                )
+                "callback_data": callbacks.EverydayScheduleCallback()
             },
             {
                 "text": cls.FREE_AFTER_CLASSES.format(after_classes_emoji),
-                "callback_data": callbacks.AfterClassesCallback(
-                    free_after_classes=after_classes_status,
-                )
+                "callback_data": callbacks.AfterClassesCallback()
             },
         ]
 

@@ -1,17 +1,15 @@
 from src.database.models import User, UserSettings
 from src.database.db import session_pool
-from src.database.repositories.base_repository import BaseRepository
+from src.keyboards.inline import callbacks as cbq
 
 from typing import Optional, List
 from sqlalchemy import select
 from sqlalchemy.orm import joinedload
 
 
-class UserRepository(BaseRepository):
+class UserRepository:
     def __init__(self, user: Optional[User] = None):
         self.user = user
-
-        super().__init__(User)
 
     async def new(self, user_id: int, group: str, tg_name: str):
         async with session_pool() as session:
@@ -32,27 +30,43 @@ class UserRepository(BaseRepository):
                 session.add(user_obj)
             
             await session.commit()
-
-    async def update_share_status(self):
+        
+    async def update_notifications(self, notification_name: str):
         async with session_pool() as session:
-            new_share_status = not self.user.settings.share
-            self.user.settings.share = new_share_status
+            settings = self.user.settings
+
+            match notification_name:
+                case cbq.EverydayScheduleCallback.__prefix__:
+                    settings.everyday_schedule_alert = not settings.everyday_schedule_alert
+                case cbq.AfterClassesCallback.__prefix__:
+                    settings.free_after_classes_alert = not settings.free_after_classes_alert
 
             await session.merge(self.user)
             await session.commit()
 
-            return new_share_status
+            return settings
+        
+    async def update_settings(self, settings_name: str):
+        async with session_pool() as session:
+            settings = self.user.settings
+
+            match settings_name:
+                case cbq.UpdateShareCallback.__prefix__:
+                    settings.share = not settings.share
+
+            await session.merge(self.user)
+            await session.commit()
+
+            return settings
 
     @staticmethod
     async def get(user_id: int) -> Optional[User]:
         async with session_pool() as session:
-            ex_res = await session.execute(
-                select(User)
-                .where(User.id == user_id)
-                .options(joinedload(User.settings))
+            user = await session.get(
+                User, user_id,
+                options=[joinedload(User.settings)]
             )
-            get_result = ex_res.scalar()
-            return get_result
+            return user
     
     @staticmethod
     async def get_all_share() -> List[User]:
@@ -62,6 +76,6 @@ class UserRepository(BaseRepository):
                 .join(User.settings)
                 .where(UserSettings.share == True)
             )
-            result_all = ex_res.all()
-            result = [i[0] for i in result_all if i]
+
+            result = ex_res.scalars().all()
             return result

@@ -2,7 +2,18 @@ from aiogram.filters.callback_data import CallbackData
 
 
 class EverydayScheduleCallback(CallbackData, prefix="everyday_schedule"):
-    everyday_schedule: bool
+    """
+    Update everyday schedule notification status callback
+    """
+
 
 class AfterClassesCallback(CallbackData, prefix="after_classes"):
-    free_after_classes: bool
+    """
+    Update after classes notification status callback
+    """
+
+
+class UpdateShareCallback(CallbackData, prefix="update_share"):
+    """
+    Update share status callback
+    """
