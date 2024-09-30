@@ -1,12 +1,23 @@
 import aiohttp
-from typing import Dict
-from datetime import time, datetime, timezone, timedelta
+from typing import List, Dict
+from datetime import time, datetime, timezone
 
-from src.tools import SafeDict
+from src.tools.safe_dict import SafeDict
 from src.parser import OnlineParser, periods, SCHEDULE_T
+from src.parser.models import Class
+from src.config import DEFAULT_TD
 
 
 periods_t = [[time(*p[0]), time(*p[1])] for p in periods]
+
+
+def list_to_text(day: List[List[Class]]):
+    res_text = ""
+    for lesson in day:
+        if not lesson:
+            continue
+        res_text += " | ".join(str(i) for i in lesson) + "\n"
+    return res_text
 
 
 async def get_group_schedule(cache: SafeDict, group: str) -> SCHEDULE_T | None:
@@ -37,7 +48,7 @@ async def get_group_schedule(cache: SafeDict, group: str) -> SCHEDULE_T | None:
 async def group_status(cache: SafeDict, group: str):
     group_schedule = await get_group_schedule(cache, group)
 
-    now_datetime = datetime.now(timezone.utc) + timedelta(hours=3)
+    now_datetime = datetime.now(timezone.utc) + DEFAULT_TD
 
     now_weekday = now_datetime.weekday()
 

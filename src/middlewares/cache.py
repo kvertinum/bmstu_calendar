@@ -2,16 +2,14 @@ from aiogram import BaseMiddleware
 from aiogram.types import Message, CallbackQuery
 from typing import Callable, Awaitable, Union, Dict, Any
 
-from src.tools import SafeDict
+from src.tools.safe_dict import SafeDict
 from src.database.repositories import UserRepository
 
 
-DEFAULT_DICT = {"group_schedules": {}}
-
-
 class CacheMiddleware(BaseMiddleware):
-    def __init__(self):
-        self.cache = SafeDict(DEFAULT_DICT)
+    def __init__(self, default: SafeDict):
+        self.cache = default
+
         super().__init__()
 
     async def __call__(

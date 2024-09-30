@@ -3,7 +3,7 @@ from src.database.db import session_pool
 from src.keyboards.inline import callbacks as cbq
 
 from typing import Optional, List
-from sqlalchemy import select
+from sqlalchemy import select, or_
 from sqlalchemy.orm import joinedload
 
 
@@ -75,6 +75,22 @@ class UserRepository:
                 select(User)
                 .join(User.settings)
                 .where(UserSettings.share == True)
+            )
+
+            result = ex_res.scalars().all()
+            return result
+        
+    @staticmethod
+    async def get_all_notifications() -> List[User]:
+        async with session_pool() as session:
+            ex_res = await session.execute(
+                select(User)
+                .join(User.settings)
+                .where(or_(
+                    UserSettings.everyday_schedule_alert,
+                    UserSettings.free_after_classes_alert,
+                ))
+                .options(joinedload(User.settings))
             )
 
             result = ex_res.scalars().all()

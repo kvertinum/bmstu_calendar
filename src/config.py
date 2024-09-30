@@ -1,8 +1,12 @@
 import os
 from dotenv import load_dotenv
+from datetime import timedelta
 
 
 load_dotenv()
+
+DEFAULT_TD = timedelta(hours=3)
+DEFAULT_CACHE = {"group_schedules": {}}
 
 LIST_API_URL = "https://lks.bmstu.ru/lks-back/api/v1/structure"
 GROUP_API_URL = "https://lks.bmstu.ru/lks-back/api/v1/schedules/groups/{group_id}/public"

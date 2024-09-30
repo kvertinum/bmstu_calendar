@@ -2,11 +2,13 @@ from aiogram import Router, F
 from aiogram.types import Message
 from aiogram.filters import Command
 from typing import Dict
+from datetime import datetime, timedelta, timezone
 
 from src import texts
 from src.middlewares.filter import UserExists
-from src.tools import SafeDict, get_group_schedule, group_status
-from src.parser import SCHEDULE_T, list_to_text
+from src.tools.safe_dict import SafeDict
+from src.tools.group_schedule import get_group_schedule, group_status, list_to_text
+from src.parser import SCHEDULE_T
 from src.keyboards.reply import MenuButtons
 from src.keyboards.inline import NotificationsButtons, SettingsButtons
 from src.keyboards.inline.callbacks import UpdateShareCallback
@@ -36,6 +38,28 @@ async def week_cmd(message: Message, safe_cache: SafeDict, user: User):
     res_schedule = ""
     for day in group_schedule:
         res_schedule += list_to_text(day) + "\n"
+
+    await message.answer(res_schedule, reply_markup=MenuButtons.menu())
+
+
+@router.message(F.text == MenuButtons.SCHEDULE_TODAY)
+async def schedule_today(message: Message, safe_cache: SafeDict, user: User):
+    schedules: Dict[str, SCHEDULE_T] = await safe_cache.get("group_schedules")
+
+    group_schedule_ex = schedules.get(user.group)
+    if not group_schedule_ex:
+        await message.answer("Загрузка расписания...")
+
+    group_schedule = await get_group_schedule(safe_cache, user.group)
+    if not group_schedule:
+        return await message.answer(texts.GROUP_NOT_EXISTS)
+    
+    tz_settings = timezone(timedelta(hours=3))
+    day = datetime.now(tz_settings).weekday()
+
+    res_schedule = "Сегодня нет пар"
+    if day < 6:
+        res_schedule = list_to_text(group_schedule[day])
 
     await message.answer(res_schedule, reply_markup=MenuButtons.menu())
 
