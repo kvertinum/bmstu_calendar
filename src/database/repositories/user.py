@@ -5,6 +5,7 @@ from src.keyboards.inline import callbacks as cbq
 from typing import Optional, List
 from sqlalchemy import select, or_
 from sqlalchemy.orm import joinedload
+from loguru import logger
 
 
 class UserRepository:
@@ -74,7 +75,8 @@ class UserRepository:
             ex_res = await session.execute(
                 select(User)
                 .join(User.settings)
-                .where(UserSettings.share == True)
+                .where(UserSettings.share)
+                .options(joinedload(User.settings))
             )
 
             result = ex_res.scalars().all()

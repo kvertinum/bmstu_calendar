@@ -1,5 +1,5 @@
 import aiohttp
-from typing import List, Dict
+from typing import List, Dict, Tuple
 from datetime import time, datetime, timezone
 
 from src.tools.safe_dict import SafeDict
@@ -13,10 +13,10 @@ periods_t = [[time(*p[0]), time(*p[1])] for p in periods]
 
 def list_to_text(day: List[List[Class]]):
     res_text = ""
-    for lesson in day:
-        if not lesson:
+    for lessons in day:
+        if not lessons:
             continue
-        res_text += " | ".join(str(i) for i in lesson) + "\n"
+        res_text += " | ".join(str(lesson) for lesson in lessons) + "\n"
     return res_text
 
 
@@ -45,7 +45,7 @@ async def get_group_schedule(cache: SafeDict, group: str) -> SCHEDULE_T | None:
         return group_schedule
     
 
-async def group_status(cache: SafeDict, group: str):
+async def group_status(cache: SafeDict, group: str) -> Tuple[int, int, str]:
     group_schedule = await get_group_schedule(cache, group)
 
     now_datetime = datetime.now(timezone.utc) + DEFAULT_TD

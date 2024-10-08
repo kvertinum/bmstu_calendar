@@ -7,12 +7,7 @@ from sqlalchemy import (
     BigInteger,
     ForeignKey,
 )
-from sqlalchemy.orm import Mapped, relationship
 from datetime import datetime
-from typing import TYPE_CHECKING
-
-if TYPE_CHECKING:
-    from src.database.models import User
 
 
 class UserSettings(Base):

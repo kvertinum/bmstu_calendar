@@ -1,4 +1,5 @@
 from pydantic import BaseModel, ConfigDict
+from datetime import time
 
 
 periods =  [
@@ -26,3 +27,10 @@ class Class(BaseModel):
         return f"{time_str} {self.name} ({self.location})" + (
             f" [{self.week}]" if self.week != "all" else ""
         )
+    
+    def time_as_object(self):
+        time_object = periods[self.time - 1]
+        class_start = time(*time_object[0])
+        class_end = time(*time_object[1])
+        
+        return class_start, class_end

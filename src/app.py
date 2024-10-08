@@ -4,18 +4,20 @@ from loguru import logger
 
 from src.handlers import routers
 from src.config import TG_TOKEN, DEFAULT_CACHE
+from src.scheduler import Scheduler
 from src.tools.safe_dict import SafeDict
 from src.middlewares import CacheMiddleware, LoggingMiddleware
 from src.scheduler.notifications import schedule_notifications
 
 
 async def on_startup(dispatcher: Dispatcher, bot: Bot):
-    await schedule_notifications(bot, dispatcher["cache"])
+    data = dispatcher.workflow_data
+    await schedule_notifications(bot, **data)
     
     commands = [
         BotCommand(command="/start", description="Выбрать свою группу"),
         BotCommand(command="/week", description="Расписание на неделю"),
-        BotCommand(command="/share", description="Позволить другим видеть свое расписание")
+        BotCommand(command="/share", description="Позволить другим видеть свое расписание"),
     ]
     await bot.set_my_commands(commands)
 
@@ -29,7 +31,8 @@ logger_format = (
 logger.add("logs.log", format=logger_format)
 
 dp = Dispatcher()
-dp["cache"] = SafeDict(DEFAULT_CACHE)
+dp["safe_cache"] = SafeDict(DEFAULT_CACHE)
+dp["scheduler"] = Scheduler()
 
 bot = Bot(TG_TOKEN)
 
@@ -37,5 +40,5 @@ dp.startup.register(on_startup)
 dp.include_routers(*routers)
 
 dp.update.outer_middleware(LoggingMiddleware())
-dp.message.outer_middleware(CacheMiddleware(dp["cache"]))
-dp.callback_query.outer_middleware(CacheMiddleware(dp["cache"]))
+dp.message.outer_middleware(CacheMiddleware())
+dp.callback_query.outer_middleware(CacheMiddleware())
