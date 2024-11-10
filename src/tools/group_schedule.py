@@ -2,7 +2,9 @@ import aiohttp
 from typing import List, Dict, Tuple
 from datetime import time, datetime, timezone
 
+from src import texts
 from src.tools.safe_dict import SafeDict
+from src.database.models import User
 from src.parser import OnlineParser, periods, SCHEDULE_T
 from src.parser.models import Class
 from src.config import DEFAULT_TD
@@ -52,6 +54,9 @@ async def group_status(cache: SafeDict, group: str) -> Tuple[int, int, str]:
 
     now_weekday = now_datetime.weekday()
 
+    if now_weekday == 6:
+        return 1, 0, ""
+
     schedule = [i for i in group_schedule[now_weekday] if i]
     schedule_size = len(schedule)
     
@@ -67,3 +72,26 @@ async def group_status(cache: SafeDict, group: str) -> Tuple[int, int, str]:
             return ind+1, schedule_size, last_time_str
         
     return schedule_size+1, schedule_size, ""
+
+async def busy_users_text(users: List[User], safe_cache: SafeDict):
+    result_text, texted = "", False
+
+    for user in users:
+        class_now, class_len, last_str = await group_status(safe_cache, user.group)
+
+        if class_now > class_len:
+            result_text += texts.USER_FREE_NOW.format(
+                name=user.telegram_name,
+                user_id=user.id,
+            ) + "\n"
+
+        else:
+            result_text += texts.USER_BUSY_NOW.format(
+                name=user.telegram_name,
+                user_id=user.id,
+                class_now=class_now,
+                class_len=class_len,
+                end_time=last_str
+            ) + "\n"
+
+    return result_text

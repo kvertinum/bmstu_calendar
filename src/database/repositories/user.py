@@ -5,7 +5,6 @@ from src.keyboards.inline import callbacks as cbq
 from typing import Optional, List
 from sqlalchemy import select, or_
 from sqlalchemy.orm import joinedload
-from loguru import logger
 
 
 class UserRepository:
@@ -76,6 +75,19 @@ class UserRepository:
                 select(User)
                 .join(User.settings)
                 .where(UserSettings.share)
+                .options(joinedload(User.settings))
+            )
+
+            result = ex_res.scalars().all()
+            return result
+        
+    @staticmethod
+    async def get_share_by_ids(user_ids: List[int]) -> List[User]:
+        async with session_pool() as session:
+            ex_res = await session.execute(
+                select(User)
+                .join(User.settings)
+                .where(User.id.in_(user_ids), UserSettings.share)
                 .options(joinedload(User.settings))
             )
 

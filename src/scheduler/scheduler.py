@@ -29,13 +29,10 @@ class Scheduler:
     def __init__(self):
         self.task_configs: Dict[uuid.UUID, TaskConfig] = {}
         self._lock = asyncio.Lock()
-
-    def nowtime(self):
-        return datetime.now(timezone.utc) + DEFAULT_TD
     
     def _calc_next_run(self, task_id: int):
         config = self.task_configs[task_id]
-        now = self.nowtime()
+        now = datetime.now(timezone.utc) + DEFAULT_TD
 
         if config.interval:
             hours = config.hours or 0

@@ -7,6 +7,7 @@ from src.database.repositories import UserRepository
 from src.database.models import User
 from src.tools.safe_dict import SafeDict
 from src.tools.group_schedule import get_group_schedule, group_status, list_to_text
+from src.middlewares.cache import DEFAULT_USER_DATA
 from src.scheduler import Scheduler, Task
 
 
@@ -50,16 +51,18 @@ class AfterClassesAlert(Task):
             return
         
         share_open_users = await UserRepository.get_all_share()
-        result_text = ""
+        result_texts = []
 
         for user in share_open_users:
             class_now, class_len, _ = await group_status(self.cache, user.group)
 
             if class_now > class_len:
-                result_text += texts.USER_FREE_NOW.format(
+                result_texts.append(texts.USER_FREE_NOW.format(
                     name=user.telegram_name,
                     user_id=user.id,
-                ) + "\n"
+                ))
+
+        result_text = "\n".join(result_text)
 
         if result_text:
             result_text = texts.AFTERCLS_SUB_START + result_text
@@ -89,7 +92,7 @@ async def setup_aftercls_alert(scheduler: Scheduler, bot: Bot, cache: SafeDict, 
     return task_ids
 
 async def user_schedule_notifications(user: User, bot: Bot, safe_cache: SafeDict, scheduler: Scheduler):
-    user_data = await safe_cache.get(user.id) or {}
+    user_data = await safe_cache.get(user.id) or DEFAULT_USER_DATA.copy()
 
     alert_id = user_data.get("everyday_schedule_alert_id")
     alert_status = user.settings.everyday_schedule_alert

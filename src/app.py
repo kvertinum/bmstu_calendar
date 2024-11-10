@@ -15,9 +15,10 @@ async def on_startup(dispatcher: Dispatcher, bot: Bot):
     await schedule_notifications(bot, **data)
     
     commands = [
-        BotCommand(command="/start", description="Выбрать свою группу"),
         BotCommand(command="/week", description="Расписание на неделю"),
+        BotCommand(command="/chat_free", description="Свободные пользователи из текущего чата"),
         BotCommand(command="/share", description="Позволить другим видеть свое расписание"),
+        BotCommand(command="/start", description="Выбрать свою группу"),
     ]
     await bot.set_my_commands(commands)
 

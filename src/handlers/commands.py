@@ -5,9 +5,9 @@ from typing import Dict
 from datetime import datetime, timedelta, timezone
 
 from src import texts
-from src.middlewares.filter import UserExists
+from src.middlewares.filter import UserExists, PrivateFilter
 from src.tools.safe_dict import SafeDict
-from src.tools.group_schedule import get_group_schedule, group_status, list_to_text
+from src.tools.group_schedule import get_group_schedule, busy_users_text, list_to_text
 from src.parser import SCHEDULE_T
 from src.keyboards.reply import MenuButtons
 from src.keyboards.inline import NotificationsButtons, SettingsButtons
@@ -18,7 +18,7 @@ from src.database.models import User
 
 router = Router(name="commands-router")
 
-router.message.filter(UserExists())
+router.message.filter(UserExists(), PrivateFilter())
 router.callback_query.filter(UserExists())
 
 
@@ -99,31 +99,8 @@ async def settings_button(message: Message, user: User):
 async def free_students_button(message: Message, safe_cache: SafeDict):
     share_open_users = await UserRepository.get_all_share()
 
-    # texted var to send the download text only once
-    result_text, texted = "", False
-    schedules: Dict[str, SCHEDULE_T] = await safe_cache.get("group_schedules")
+    undited_message = await message.answer("Загрузка расписания...")
 
-    for user in share_open_users:
-        schedule_ex = schedules.get(user.group)
-        if not schedule_ex and not texted:
-            texted = True
-            await message.answer("Загрузка расписания...")
+    result_text = await busy_users_text(share_open_users, safe_cache)
 
-        class_now, class_len, last_str = await group_status(safe_cache, user.group)
-
-        if class_now > class_len:
-            result_text += texts.USER_FREE_NOW.format(
-                name=user.telegram_name,
-                user_id=user.id,
-            ) + "\n"
-
-        else:
-            result_text += texts.USER_BUSY_NOW.format(
-                name=user.telegram_name,
-                user_id=user.id,
-                class_now=class_now,
-                class_len=class_len,
-                end_time=last_str
-            ) + "\n"
-
-    await message.answer(result_text, parse_mode="MarkdownV2")
+    await undited_message.edit_text(result_text, parse_mode="MarkdownV2")
